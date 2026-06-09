@@ -6,7 +6,8 @@
     "dev:crm": "next dev",
     "dev:channel": "node channel-service/server.js",
     "dev": "concurrently \"npm run dev:crm\" \"npm run dev:channel\"",
-    "build": "next build",
+    "build": "prisma generate && prisma db push --accept-data-loss && npm run seed && next build",
+    "seed": "tsx prisma/seed.ts",
     "start": "next start",
     "lint": "eslint"
   },
