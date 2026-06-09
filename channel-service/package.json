@@ -1,0 +1,13 @@
+{
+  "name": "channel-service",
+  "version": "1.0.0",
+  "description": "Simulated channel service for campaign message dispatch and callbacks",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "cors": "^2.8.5"
+  }
+}

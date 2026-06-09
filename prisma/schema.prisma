@@ -1,0 +1,81 @@
+// This is your Prisma schema file
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Customer {
+  id             String          @id @default(uuid())
+  name           String
+  email          String          @unique
+  phone          String
+  city           String
+  age            Int
+  gender         String
+  createdAt      DateTime        @default(now())
+  orders         Order[]
+  communications Communication[]
+  events         Event[]
+}
+
+model Order {
+  id         String   @id @default(uuid())
+  customerId String
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  amount     Float
+  category   String
+  orderDate  DateTime
+}
+
+model Segment {
+  id          String     @id @default(uuid())
+  name        String
+  description String?
+  nlpQuery    String?
+  rules       String     // JSON serialized filter array
+  createdAt   DateTime   @default(now())
+  campaigns   Campaign[]
+}
+
+model Campaign {
+  id             String          @id @default(uuid())
+  name           String
+  segmentId      String?
+  segment        Segment?        @relation(fields: [segmentId], references: [id], onDelete: SetNull)
+  channel        String          // WHATSAPP, EMAIL, SMS
+  message        String          // Personalized message template
+  status         String          // DRAFT, RUNNING, COMPLETED, FAILED
+  createdAt      DateTime        @default(now())
+  communications Communication[]
+  events         Event[]
+}
+
+model Communication {
+  id         String   @id @default(uuid())
+  campaignId String
+  campaign   Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  customerId String
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  status     String   // PENDING, SENT, DELIVERED, OPENED, CLICKED, CONVERTED, FAILED
+  sentAt     DateTime @default(now())
+  content    String   // Rendered message content
+  events     Event[]
+}
+
+model Event {
+  id              String         @id @default(uuid())
+  campaignId      String
+  campaign        Campaign       @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  customerId      String
+  customer        Customer       @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  communicationId String?
+  communication   Communication? @relation(fields: [communicationId], references: [id], onDelete: Cascade)
+  eventType       String         // sent, delivered, opened, clicked, converted, failed
+  timestamp       DateTime       @default(now())
+}
