@@ -1,0 +1,1025 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recommendation Engine Simulator</title>
+    <meta name="description" content="An interactive simulator showcasing the core components of a recommendation engine.">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-main: #0b0c10;
+            --bg-card: rgba(26, 29, 40, 0.65);
+            --bg-card-hover: rgba(36, 40, 56, 0.8);
+            --accent-primary: #6366f1;
+            --accent-primary-gradient: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #d946ef 100%);
+            --accent-success: #10b981;
+            --accent-success-gradient: linear-gradient(135deg, #059669, #10b981);
+            --accent-warning: #f59e0b;
+            --text-main: #f3f4f6;
+            --text-muted: #9ca3af;
+            --text-dark: #1f2937;
+            --border-glow: rgba(99, 102, 241, 0.15);
+            --border-color: rgba(255, 255, 255, 0.07);
+            --font-outfit: 'Outfit', sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+            --transition-speed: 0.3s;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: var(--font-outfit);
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            line-height: 1.6;
+            padding: 2rem 1.5rem;
+            min-height: 100vh;
+            background-image: 
+                radial-gradient(at 10% 10%, rgba(99, 102, 241, 0.1) 0px, transparent 50%),
+                radial-gradient(at 90% 90%, rgba(217, 70, 239, 0.08) 0px, transparent 50%);
+            background-attachment: fixed;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* Header Styles */
+        header {
+            text-align: center;
+            margin-bottom: 3rem;
+            animation: fadeInDown 0.8s ease-out;
+        }
+
+        h1 {
+            font-size: 3rem;
+            font-weight: 800;
+            background: var(--accent-primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.03em;
+        }
+
+        .subtitle {
+            color: var(--text-muted);
+            font-size: 1.15rem;
+            font-weight: 300;
+        }
+
+        /* Layout Grid */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 350px 1fr;
+            gap: 2rem;
+            align-items: start;
+        }
+
+        @media (max-width: 1024px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Glassmorphic Cards */
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 1.75rem;
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+            transition: all var(--transition-speed) ease;
+        }
+
+        .card:hover {
+            border-color: rgba(99, 102, 241, 0.25);
+            box-shadow: 0 12px 40px 0 rgba(99, 102, 241, 0.08);
+        }
+
+        .card-title {
+            font-size: 1.35rem;
+            font-weight: 600;
+            margin-bottom: 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 0.75rem;
+        }
+
+        .card-title span.badge {
+            font-size: 0.75rem;
+            font-family: var(--font-mono);
+            background: var(--accent-primary-gradient);
+            padding: 2px 8px;
+            border-radius: 20px;
+            color: white;
+            font-weight: bold;
+        }
+
+        /* Control Panel Styles */
+        .control-group {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            margin-bottom: 0.5rem;
+        }
+
+        select {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border-radius: 10px;
+            background: rgba(15, 17, 26, 0.9);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            font-family: var(--font-outfit);
+            font-size: 1rem;
+            outline: none;
+            cursor: pointer;
+            transition: border-color var(--transition-speed);
+        }
+
+        select:focus {
+            border-color: var(--accent-primary);
+        }
+
+        .slider-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+        }
+
+        input[type="range"] {
+            flex: 1;
+            accent-color: var(--accent-primary);
+            cursor: pointer;
+        }
+
+        .slider-value {
+            font-family: var(--font-mono);
+            font-weight: bold;
+            font-size: 1rem;
+            width: 25px;
+            text-align: right;
+        }
+
+        .btn {
+            display: inline-block;
+            width: 100%;
+            padding: 0.9rem;
+            border: none;
+            border-radius: 12px;
+            background: var(--accent-primary-gradient);
+            color: white;
+            font-family: var(--font-outfit);
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all var(--transition-speed) ease;
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+            text-align: center;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(99, 102, 241, 0.45);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        /* Results Panel Styles */
+        .pipeline {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        /* Table Styles */
+        .table-responsive {
+            overflow-x: auto;
+            margin-top: 1rem;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            background: rgba(10, 11, 16, 0.4);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 0.9rem;
+        }
+
+        th {
+            background-color: rgba(99, 102, 241, 0.08);
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        td {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        .rating-num {
+            font-family: var(--font-mono);
+            font-weight: bold;
+            color: var(--accent-warning);
+        }
+
+        .rating-empty {
+            color: rgba(255, 255, 255, 0.15);
+            font-size: 0.8rem;
+        }
+
+        /* Step Styles */
+        .step-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1.25rem;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .step-number {
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid var(--border-color);
+            padding: 3px 10px;
+            border-radius: 30px;
+            color: var(--text-muted);
+        }
+
+        /* Visual Lists */
+        .grid-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .item-pill {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border-color);
+            padding: 0.75rem 1rem;
+            border-radius: 12px;
+            text-align: center;
+            transition: all var(--transition-speed);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .item-pill:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: var(--accent-primary);
+            transform: translateY(-2px);
+        }
+
+        .item-name {
+            font-weight: 500;
+            font-size: 0.95rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .item-score {
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            color: var(--accent-primary);
+            font-weight: bold;
+        }
+
+        /* Similarity Bars */
+        .sim-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1.5rem;
+            margin-bottom: 0.85rem;
+        }
+
+        .sim-label {
+            font-weight: 500;
+            width: 80px;
+        }
+
+        .sim-bar-container {
+            flex: 1;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 4px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .sim-bar {
+            height: 100%;
+            background: var(--accent-primary-gradient);
+            border-radius: 4px;
+            width: 0%;
+            transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .sim-value {
+            font-family: var(--font-mono);
+            font-weight: bold;
+            font-size: 0.85rem;
+            width: 60px;
+            text-align: right;
+        }
+
+        .neighbor-active {
+            color: var(--accent-success);
+        }
+
+        .neighbor-active-bar {
+            background: var(--accent-success-gradient) !important;
+        }
+
+        /* Evaluation Circle Score */
+        .eval-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+            padding: 1rem;
+        }
+
+        .eval-ring-wrapper {
+            position: relative;
+            width: 130px;
+            height: 130px;
+        }
+
+        .eval-ring-svg {
+            transform: rotate(-90deg);
+            width: 100%;
+            height: 100%;
+        }
+
+        .eval-ring-bg {
+            fill: none;
+            stroke: rgba(255, 255, 255, 0.05);
+            stroke-width: 10;
+        }
+
+        .eval-ring-fg {
+            fill: none;
+            stroke: url(#gradientSuccess);
+            stroke-width: 10;
+            stroke-dasharray: 345.5;
+            stroke-dashoffset: 345.5;
+            stroke-linecap: round;
+            transition: stroke-dashoffset 1s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .eval-score-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+        }
+
+        .eval-percent {
+            font-size: 1.8rem;
+            font-weight: 800;
+            line-height: 1;
+            font-family: var(--font-mono);
+        }
+
+        .eval-label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-top: 2px;
+        }
+
+        .eval-details {
+            max-width: 250px;
+        }
+
+        .eval-detail-title {
+            font-weight: 600;
+            font-size: 1.1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .eval-detail-desc {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .eval-detail-desc strong {
+            color: var(--text-main);
+        }
+
+        /* Math Display */
+        .math-badge {
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            background: rgba(99, 102, 241, 0.08);
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            color: #c7d2fe;
+            padding: 4px 10px;
+            border-radius: 6px;
+            margin-bottom: 1rem;
+            display: inline-block;
+        }
+
+        /* Tab Switchers */
+        .tab-bar {
+            display: flex;
+            gap: 0.5rem;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 1.5rem;
+        }
+
+        .tab-btn {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-family: var(--font-outfit);
+            font-size: 1rem;
+            font-weight: 600;
+            padding: 0.75rem 1.25rem;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all var(--transition-speed);
+        }
+
+        .tab-btn:hover {
+            color: var(--text-main);
+        }
+
+        .tab-btn.active {
+            color: var(--accent-primary);
+            border-bottom-color: var(--accent-primary);
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Tooltip style mathematical info */
+        .info-bubble {
+            background: rgba(255, 255, 255, 0.03);
+            border-left: 4px solid var(--accent-primary);
+            padding: 0.85rem 1rem;
+            border-radius: 0 10px 10px 0;
+            margin: 1rem 0;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        /* Animations */
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .animated-entry {
+            animation: fadeIn 0.5s ease-out forwards;
+        }
+
+        /* Status & Toast */
+        .status-container {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.85rem;
+            color: var(--accent-success);
+            margin-top: 1rem;
+            font-weight: 500;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background-color: var(--accent-success);
+            border-radius: 50%;
+            box-shadow: 0 0 8px var(--accent-success);
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(0.9); opacity: 0.8; }
+            50% { transform: scale(1.2); opacity: 1; box-shadow: 0 0 12px var(--accent-success); }
+            100% { transform: scale(0.9); opacity: 0.8; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1 id="app-title">Recommendation Engine Simulator</h1>
+        <p class="subtitle">Step-by-step interactive simulator for Collaborative Filtering recommendation components</p>
+        <div class="status-container" style="justify-content: center;">
+            <div class="status-dot"></div>
+            <span>Connected to Localhost backend (Python/Flask)</span>
+        </div>
+    </header>
+
+    <div class="dashboard-grid">
+        <!-- Controls Column -->
+        <aside class="card animated-entry">
+            <h2 class="card-title">Simulator Settings</h2>
+            
+            <div class="control-group">
+                <label for="target-user-select">Target User (u)</label>
+                <select id="target-user-select">
+                    <!-- Loaded dynamically -->
+                    <option value="Alice">Alice</option>
+                </select>
+            </div>
+
+            <div class="control-group">
+                <label for="similarity-metric-select">Similarity Method</label>
+                <select id="similarity-metric-select">
+                    <option value="cosine">Cosine Similarity (Ratings-based)</option>
+                    <option value="jaccard">Jaccard Similarity (Interactions-based)</option>
+                </select>
+            </div>
+
+            <div class="control-group">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                    <label style="margin-bottom: 0;">Neighbors (K users)</label>
+                </div>
+                <div class="slider-container">
+                    <input type="range" id="top-k-slider" min="1" max="7" value="3">
+                    <div class="slider-value" id="top-k-val">3</div>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                    <label style="margin-bottom: 0;">Top N Recommendations</label>
+                </div>
+                <div class="slider-container">
+                    <input type="range" id="top-n-slider" min="1" max="10" value="5">
+                    <div class="slider-value" id="top-n-val">5</div>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                    <label style="margin-bottom: 0;">Evaluation Cut-off (@K)</label>
+                </div>
+                <div class="slider-container">
+                    <input type="range" id="eval-k-slider" min="1" max="5" value="3">
+                    <div class="slider-value" id="eval-k-val">3</div>
+                </div>
+            </div>
+
+            <button class="btn" id="run-btn" style="margin-top: 1rem;">Generate Recommendations</button>
+        </aside>
+
+        <!-- Main Column with Tabs -->
+        <main class="pipeline">
+            <div class="card animated-entry" style="animation-delay: 0.1s;">
+                <div class="tab-bar">
+                    <button class="tab-btn active" data-tab="simulation-tab">Recommendation Pipeline</button>
+                    <button class="tab-btn" data-tab="dataset-tab">Raw Training Dataset</button>
+                </div>
+
+                <!-- Simulation Tab Content -->
+                <div class="tab-content active" id="simulation-tab">
+                    
+                    <!-- MODULE 1: SIMBILITY CALCULATOR -->
+                    <section style="margin-bottom: 2.5rem;">
+                        <div class="step-header">
+                            <h3 style="font-size: 1.25rem; font-weight: 600;">Module 1: Similarity Calculator</h3>
+                            <span class="step-number">Step 1</span>
+                        </div>
+                        <div class="math-badge" id="similarity-math-formula">
+                            Cosine Similarity = Σ(R_u,i * R_v,i) / (||R_u|| * ||R_v||)
+                        </div>
+                        <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1rem;">
+                            Calculates similarity coefficients between <strong class="target-user-name">Alice</strong> and all other users. Highlighted users are the selected top neighbors (<span id="neighbors-count-text">3</span>).
+                        </p>
+                        
+                        <div id="similarity-results-container" style="background: rgba(0,0,0,0.2); padding: 1.25rem; border-radius: 12px; border: 1px solid var(--border-color);">
+                            <!-- Similarity bars populated dynamically -->
+                        </div>
+                    </section>
+
+                    <!-- MODULE 2: CANDIDATE GENERATOR -->
+                    <section style="margin-bottom: 2.5rem;">
+                        <div class="step-header">
+                            <h3 style="font-size: 1.25rem; font-weight: 600;">Module 2: Candidate Generator</h3>
+                            <span class="step-number">Step 2</span>
+                        </div>
+                        <div class="info-bubble">
+                            <strong>Candidate Generation Rule:</strong> Extracts unique items that the chosen top similar users rated/liked, but the target user <strong class="target-user-name">Alice</strong> has not interacted with.
+                        </div>
+                        
+                        <div class="grid-cards" id="candidates-container">
+                            <!-- Populated dynamically -->
+                        </div>
+                    </section>
+
+                    <!-- MODULE 3: SCORER & RANKER -->
+                    <section style="margin-bottom: 2.5rem;">
+                        <div class="step-header">
+                            <h3 style="font-size: 1.25rem; font-weight: 600;">Module 3: Candidate Scorer & Ranker</h3>
+                            <span class="step-number">Step 3</span>
+                        </div>
+                        <div class="math-badge">
+                            Score(u, i) = Σ(Sim(u,v) * R_v,i) / Σ(|Sim(u,v)|)
+                        </div>
+                        <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1rem;">
+                            Scores candidates using similarity-weighted ratings, ranks them descending, and selects the top recommendations.
+                        </p>
+                        
+                        <div class="grid-cards" id="recommendations-container">
+                            <!-- Populated dynamically -->
+                        </div>
+                    </section>
+
+                    <!-- MODULE 4: EVALUATOR -->
+                    <section>
+                        <div class="step-header">
+                            <h3 style="font-size: 1.25rem; font-weight: 600;">Module 4: Evaluator</h3>
+                            <span class="step-number">Step 4</span>
+                        </div>
+                        <div class="math-badge">
+                            Precision@K = |Recommended@K ∩ Ground Truth| / K
+                        </div>
+                        
+                        <div style="background: rgba(0,0,0,0.25); border: 1px solid var(--border-color); border-radius: 15px; padding: 1.5rem;">
+                            <div class="eval-container">
+                                <!-- Progress Ring -->
+                                <div class="eval-ring-wrapper">
+                                    <svg class="eval-ring-svg">
+                                        <defs>
+                                            <linearGradient id="gradientSuccess" x1="0%" y1="0%" x2="100%" y2="100%">
+                                                <stop offset="0%" stop-color="#10b981" />
+                                                <stop offset="100%" stop-color="#059669" />
+                                            </linearGradient>
+                                        </defs>
+                                        <circle class="eval-ring-bg" cx="65" cy="65" r="55" />
+                                        <circle class="eval-ring-fg" id="eval-ring-progress" cx="65" cy="65" r="55" />
+                                    </svg>
+                                    <div class="eval-score-text">
+                                        <div class="eval-percent" id="eval-percentage-text">0%</div>
+                                        <div class="eval-label">Precision</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="eval-details">
+                                    <h4 class="eval-detail-title">Precision@<span id="eval-k-title">3</span> Score</h4>
+                                    <div class="eval-detail-desc" style="margin-bottom: 0.5rem;">
+                                        Ground Truth (Later liked by user): <br>
+                                        <span id="eval-ground-truth-tags" style="color: #6366f1; font-weight: bold;">None</span>
+                                    </div>
+                                    <div class="eval-detail-desc">
+                                        Of the top <strong id="eval-k-desc">3</strong> recommendations, <strong id="eval-hits-count">0</strong> match the user's holdout ground truth profile.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                </div>
+
+                <!-- Dataset Tab Content -->
+                <div class="tab-content" id="dataset-tab">
+                    <p style="color: var(--text-muted); font-size: 0.9rem;">
+                        This matrix displays the rating history (1.0 to 5.0) of all users. Empty spaces represent unrated movies (candidates for recommendations).
+                    </p>
+                    <div class="table-responsive">
+                        <table id="dataset-table">
+                            <thead>
+                                <tr>
+                                    <th>User</th>
+                                    <!-- Populated dynamically -->
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Populated dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+
+<script>
+    // Constants & State
+    let dataset = null;
+    const circleCircumference = 345.5; // 2 * pi * r (r = 55)
+
+    // DOM Elements
+    const targetUserSelect = document.getElementById('target-user-select');
+    const similarityMetricSelect = document.getElementById('similarity-metric-select');
+    const topKSlider = document.getElementById('top-k-slider');
+    const topKVal = document.getElementById('top-k-val');
+    const topNSlider = document.getElementById('top-n-slider');
+    const topNVal = document.getElementById('top-n-val');
+    const evalKSlider = document.getElementById('eval-k-slider');
+    const evalKVal = document.getElementById('eval-k-val');
+    const runBtn = document.getElementById('run-btn');
+    
+    // Tab switching logic
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            
+            btn.classList.add('active');
+            document.getElementById(btn.dataset.tab).classList.add('active');
+        });
+    });
+
+    // Slider UI sync
+    topKSlider.addEventListener('input', (e) => { topKVal.textContent = e.target.value; });
+    topNSlider.addEventListener('input', (e) => { topNVal.textContent = e.target.value; });
+    evalKSlider.addEventListener('input', (e) => { evalKVal.textContent = e.target.value; });
+
+    // Load initial dataset
+    async function loadDataset() {
+        try {
+            const res = await fetch('/api/data');
+            dataset = await res.json();
+            
+            // Populate Target User Select
+            targetUserSelect.innerHTML = '';
+            dataset.users.forEach(user => {
+                const opt = document.createElement('option');
+                opt.value = user;
+                opt.textContent = user;
+                targetUserSelect.appendChild(opt);
+            });
+
+            // Build Raw Dataset Table
+            buildDatasetTable();
+            
+            // Initial recommendation run
+            runRecommendation();
+        } catch (err) {
+            console.error("Failed to load dataset:", err);
+        }
+    }
+
+    function buildDatasetTable() {
+        const table = document.getElementById('dataset-table');
+        const theadRow = table.querySelector('thead tr');
+        const tbody = table.querySelector('tbody');
+        
+        theadRow.innerHTML = '<th>User</th>';
+        tbody.innerHTML = '';
+        
+        // Add movie columns
+        dataset.all_items.forEach(movie => {
+            const th = document.createElement('th');
+            th.textContent = movie;
+            theadRow.appendChild(th);
+        });
+        
+        // Add user rating rows
+        for (const [user, ratings] of Object.entries(dataset.ratings)) {
+            const tr = document.createElement('tr');
+            
+            const tdUser = document.createElement('td');
+            tdUser.innerHTML = `<strong>${user}</strong>`;
+            tr.appendChild(tdUser);
+            
+            dataset.all_items.forEach(movie => {
+                const td = document.createElement('td');
+                if (ratings[movie] !== undefined) {
+                    td.innerHTML = `<span class="rating-num">${ratings[movie]}★</span>`;
+                } else if (dataset.ground_truth[user].includes(movie)) {
+                    td.innerHTML = `<span style="color: #6366f1; font-size: 0.8rem; font-weight: 500;">(Holdout Test)</span>`;
+                } else {
+                    td.innerHTML = `<span class="rating-empty">—</span>`;
+                }
+                tr.appendChild(td);
+            });
+            
+            tbody.appendChild(tr);
+        }
+    }
+
+    // Run Recommendation Pipeline
+    async function runRecommendation() {
+        if (!dataset) return;
+        
+        const targetUser = targetUserSelect.value;
+        const similarityType = similarityMetricSelect.value;
+        const topKUsers = parseInt(topKSlider.value);
+        const topNRecs = parseInt(topNSlider.value);
+        const evalK = parseInt(evalKSlider.value);
+        
+        // Update labels
+        document.querySelectorAll('.target-user-name').forEach(el => el.textContent = targetUser);
+        document.getElementById('neighbors-count-text').textContent = topKUsers;
+        
+        // Update formula badge
+        const formulaBadge = document.getElementById('similarity-math-formula');
+        if (similarityType === 'cosine') {
+            formulaBadge.textContent = 'Cosine Similarity = Σ(Ru,i * Rv,i) / (||Ru|| * ||Rv||)';
+        } else {
+            formulaBadge.textContent = 'Jaccard Similarity = |Su ∩ Sv| / |Su ∪ Sv|';
+        }
+        
+        try {
+            runBtn.textContent = 'Calculating...';
+            runBtn.disabled = true;
+            
+            const response = await fetch('/api/recommend', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    target_user: targetUser,
+                    similarity_type: similarityType,
+                    top_k_users: topKUsers,
+                    top_n_recs: topNRecs,
+                    eval_k: evalK
+                })
+            });
+            
+            const results = await response.json();
+            
+            // 1. Render Similarity Calculator Results
+            renderSimilarityStep(results, topKUsers);
+            
+            // 2. Render Candidate Generator Results
+            renderCandidatesStep(results);
+            
+            // 3. Render Scorer & Ranker Results
+            renderRecommendationsStep(results);
+            
+            // 4. Render Evaluation Results
+            renderEvaluatorStep(results, evalK);
+            
+        } catch (error) {
+            console.error("Error in recommendation run:", error);
+        } finally {
+            runBtn.textContent = 'Generate Recommendations';
+            runBtn.disabled = false;
+        }
+    }
+
+    function renderSimilarityStep(results, topKUsers) {
+        const container = document.getElementById('similarity-results-container');
+        container.innerHTML = '';
+        
+        const neighborUsers = results.neighbors.map(n => n.user);
+        
+        results.all_similarities.forEach(sim => {
+            const isNeighbor = neighborUsers.includes(sim.user);
+            
+            const row = document.createElement('div');
+            row.className = 'sim-row';
+            
+            row.innerHTML = `
+                <div class="sim-label ${isNeighbor ? 'neighbor-active' : ''}">
+                    <strong>${sim.user}</strong> ${isNeighbor ? '★' : ''}
+                </div>
+                <div class="sim-bar-container">
+                    <div class="sim-bar ${isNeighbor ? 'neighbor-active-bar' : ''}" style="width: ${sim.score * 100}%"></div>
+                </div>
+                <div class="sim-value ${isNeighbor ? 'neighbor-active' : ''}">
+                    ${sim.score.toFixed(4)}
+                </div>
+            `;
+            container.appendChild(row);
+        });
+    }
+
+    function renderCandidatesStep(results) {
+        const container = document.getElementById('candidates-container');
+        container.innerHTML = '';
+        
+        if (results.candidates.length === 0) {
+            container.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); font-style: italic; padding: 2rem 0;">No candidates generated. Target user has already watched all items or no similar users found.</div>';
+            return;
+        }
+        
+        results.candidates.forEach(candidate => {
+            const pill = document.createElement('div');
+            pill.className = 'item-pill';
+            pill.innerHTML = `
+                <div class="item-name">${candidate}</div>
+                <div style="font-size: 0.75rem; color: var(--text-muted);">Candidate Item</div>
+            `;
+            container.appendChild(pill);
+        });
+    }
+
+    function renderRecommendationsStep(results) {
+        const container = document.getElementById('recommendations-container');
+        container.innerHTML = '';
+        
+        if (results.recommendations.length === 0) {
+            container.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); font-style: italic; padding: 2rem 0;">No recommendations generated.</div>';
+            return;
+        }
+        
+        results.recommendations.forEach(([item, score]) => {
+            const pill = document.createElement('div');
+            pill.className = 'item-pill';
+            pill.innerHTML = `
+                <div class="item-name" style="color: var(--accent-success);">${item}</div>
+                <div class="item-score">Pred: ${score}★</div>
+            `;
+            container.appendChild(pill);
+        });
+    }
+
+    function renderEvaluatorStep(results, evalK) {
+        const percentText = document.getElementById('eval-percentage-text');
+        const progressRing = document.getElementById('eval-ring-progress');
+        const gtTagsContainer = document.getElementById('eval-ground-truth-tags');
+        const evalKTitle = document.getElementById('eval-k-title');
+        const evalKDesc = document.getElementById('eval-k-desc');
+        const evalHitsCount = document.getElementById('eval-hits-count');
+        
+        // Update text labels
+        evalKTitle.textContent = evalK;
+        evalKDesc.textContent = evalK;
+        
+        // Ground Truth Tags
+        if (results.ground_truth.length > 0) {
+            gtTagsContainer.innerHTML = results.ground_truth.map(item => 
+                `<span style="display: inline-block; background: rgba(99,102,241,0.15); border: 1px solid rgba(99,102,241,0.3); padding: 2px 8px; border-radius: 6px; font-size: 0.8rem; margin: 2px;">${item}</span>`
+            ).join('');
+        } else {
+            gtTagsContainer.textContent = 'None';
+        }
+        
+        // Compute hits
+        const recList = results.recommendations.slice(0, evalK).map(r => r[0]);
+        const hits = recList.filter(item => results.ground_truth.includes(item)).length;
+        evalHitsCount.textContent = hits;
+        
+        // Percent calculations
+        const precisionPercent = results.precision * 100;
+        percentText.textContent = `${precisionPercent.toFixed(0)}%`;
+        
+        // Animate circular progress ring
+        const strokeDashoffset = circleCircumference - (results.precision * circleCircumference);
+        progressRing.style.strokeDashoffset = strokeDashoffset;
+    }
+
+    // Event listeners
+    runBtn.addEventListener('click', runRecommendation);
+    
+    // Auto load on start
+    window.addEventListener('DOMContentLoaded', loadDataset);
+</script>
+</body>
+</html>
